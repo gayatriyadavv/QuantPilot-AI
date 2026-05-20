@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Environment
+.env
+.env.local
+
+# Data
+data/*.db
+data/*.csv
+data/*.parquet
+*.sqlite3
+
+# ML Models
+models/checkpoints/
+models/*.zip
+models/*.pt
+models/*.pth
+*.onnx
+tensorboard_logs/
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker/.env.docker
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+*.log
+logs/

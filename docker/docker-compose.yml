@@ -1,0 +1,87 @@
+# QuantPilot AI — Docker Compose
+# Multi-service deployment: API, Frontend, PostgreSQL, Redis
+
+services:
+  # ── FastAPI Backend ──────────────────────────────────────
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    container_name: quantpilot-api
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://quantpilot:quantpilot@db:5432/quantpilot
+      - REDIS_URL=redis://redis:6379/0
+      - APP_ENV=production
+      - DEBUG=false
+    volumes:
+      - model_data:/app/models
+      - app_data:/app/data
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+
+  # ── Streamlit Dashboard ──────────────────────────────────
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
+    container_name: quantpilot-frontend
+    ports:
+      - "8501:8501"
+    environment:
+      - BACKEND_URL=http://api:8000
+    depends_on:
+      - api
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  # ── PostgreSQL Database ──────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: quantpilot-db
+    environment:
+      POSTGRES_USER: quantpilot
+      POSTGRES_PASSWORD: quantpilot
+      POSTGRES_DB: quantpilot
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U quantpilot -d quantpilot"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # ── Redis Cache ──────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: quantpilot-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+  model_data:
+    driver: local
+  app_data:
+    driver: local
