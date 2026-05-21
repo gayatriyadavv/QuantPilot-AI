@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  # ---- Frontend (Next.js) ----
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:8000
+    depends_on:
+      - backend
+    networks:
+      - cooklens
+
+  # ---- Backend (FastAPI) ----
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+      - OPENAI_BASE_URL=${OPENAI_BASE_URL:-https://api.openai.com/v1}
+      - AI_MODEL=${AI_MODEL:-gpt-4o}
+      - USE_MOCK_DATA=${USE_MOCK_DATA:-true}
+    volumes:
+      - uploads:/app/uploads
+    networks:
+      - cooklens
+
+volumes:
+  uploads:
+
+networks:
+  cooklens:
+    driver: bridge
